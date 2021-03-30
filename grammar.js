@@ -155,7 +155,11 @@ module.exports = grammar({
         [$._type_not_void_not_function, $._function_type_tail],
         [$._type_not_void],
         [$._type_not_void_not_function],
-        [$.function_signature]
+        [$.function_signature],
+        [$.function_declaration, $.lambda_expression],
+        [$._postfix_expression, $._primary],
+        [$.assignable_expression, $._postfix_expression, $.selector_expression],
+        [$.assignable_selector_part, $.selector_expression]
     ],
 
     word: $ => $.identifier,
@@ -197,26 +201,9 @@ module.exports = grammar({
                 $.setter_signature,
                 $._semicolon
             ),
-     
-            seq(
-                $.function_signature,
-                $.function_body
-            ),
-            seq(
-                $.getter_signature,
-                // optional($._type),
-                // $._get,
-                // $.identifier,
-                $.function_body
-            ),
-            seq(
-                $.setter_signature,
-                // optional($._type),
-                // $._set,
-                // $.identifier,
-                // $.formal_parameter_list,
-                $.function_body
-            ),
+            $.function_declaration,
+            $.getter_declaration,
+            $.setter_declaration,
 
             //    final or const static final declaration list            
             seq(
@@ -923,13 +910,14 @@ module.exports = grammar({
         ),
 
         _postfix_expression: $ => choice(
-            seq(
-                $._primary,
-                repeat(
-                    $.selector
-                )
-            ),
+            $._primary,
+            $.selector_expression,
             $.postfix_expression
+        ),
+
+        selector_expression: $ => seq(
+            field('subject', $._primary),
+            field('selector', $.selector)
         ),
 
         postfix_expression: $ => choice(
@@ -1003,11 +991,12 @@ module.exports = grammar({
 
         new_expression: $ => seq(
             $._new_builtin,
-            $._type_not_void,
-            optional(
-                $._dot_identifier
+            field('type',
+                seq($._type_not_void,
+                    optional($._dot_identifier)
+                )
             ),
-            $.arguments
+            field('arguments', $.arguments)
         ),
 
         _dot_identifier: $ => prec.dynamic(
@@ -1028,6 +1017,7 @@ module.exports = grammar({
        
 
         _primary: $ => choice(
+            $.selector_expression,
             $._literal,
             $.function_expression,
             $.identifier,
@@ -1217,8 +1207,13 @@ module.exports = grammar({
 
         switch_block: $ => seq(
             '{',
-            repeat(choice($.switch_label, $._statement)),
+            repeat($.switch_case),
             '}'
+        ),
+
+        switch_case: $ => seq(
+            field('labels', repeat($.switch_label)),
+            field('block', $._statement)
         ),
 
         switch_label: $ => choice(
@@ -1254,26 +1249,26 @@ module.exports = grammar({
             $._try_head,
             choice(
                 $.finally_clause,
-                seq(repeat1($._on_part), optional($.finally_clause))
+                seq(repeat1($.catch_clause), optional($.finally_clause))
             )
         ),
-        _on_part: $ => choice(
+        catch_clause: $ => choice(
             seq(
-                $.catch_clause,
-                $.block
+                field('condition', $.catch_clause_condition),
+                field('body', $.block)
             ),
             seq(
                 'on',
                 $._type_not_void,
-                optional($.catch_clause),
-                $.block
+                field('condition', optional($.catch_clause_condition)),
+                field('body', $.block)
             )
         ),
         _try_head: $ => seq(
             'try',
             field('body', $.block),
         ),
-        catch_clause: $ => seq(
+        catch_clause_condition: $ => seq(
             'catch',
             '(',
             $.identifier,
@@ -1414,7 +1409,20 @@ module.exports = grammar({
             $.enum_declaration,
         )),
 
-       
+        function_declaration: $ => seq(
+            field('signature', $.function_signature),
+            field('body', $.function_body)
+        ),
+
+        getter_declaration: $ => seq(
+            field('signature', $.getter_signature),
+            field('body', $.function_body)
+        ),
+
+        setter_declaration: $ => seq(
+            field('signature', $.setter_signature),
+            field('body', $.function_body)
+        ),
 
         requires_modifier: $ => choice(
             'transitive',
@@ -1450,11 +1458,11 @@ module.exports = grammar({
         import_specification: $ => choice(
             seq(
                 $._import,
-                $.configurable_uri,
+                field('path', $.configurable_uri),
                 optional(
                     seq(
                         $._as,
-                        $.identifier
+                        field('alias', $.identifier)
                     )
                 ),
                 repeat($.combinator),
@@ -1462,10 +1470,10 @@ module.exports = grammar({
             ),
             seq(
                 $._import,
-                $.uri,
+                field('path', $.uri),
                 $._deferred,
                 $._as,
-                $.identifier,
+                field('alias', $.identifier),
                 repeat($.combinator),
                 $._semicolon
             )
@@ -1572,7 +1580,7 @@ module.exports = grammar({
                 optional(field('name', $.identifier)),
                 optional(field('type_parameters', $.type_parameters)),
                 'on',
-                field('class', $._type),
+                field('base', $._type),
                 field('body', $.extension_body)
             ),
         ),
@@ -1624,14 +1632,14 @@ module.exports = grammar({
         ),
         mixin_declaration: $ => seq(
             $._mixin,
-            $.identifier,
+            field('name', $.identifier),
             optional($.type_parameters),
             optional(seq(
                 'on',
                 $._type_not_void_list
             )),
             optional($.interfaces),
-            $.class_body
+            field('body', $.class_body)
         ),
         interfaces: $ => seq(
             $._implements,
@@ -1660,10 +1668,7 @@ module.exports = grammar({
                     seq(optional($._metadata), $.declaration, $._semicolon),
                     seq(
                         optional($._metadata),
-                        seq(
-                            $.method_signature,
-                            $.function_body
-                        ),
+                        $.method_declaration,
                     )
                 )
             ),
@@ -1672,10 +1677,12 @@ module.exports = grammar({
 
         _class_member_definition: $ => choice(
             seq($.declaration, $._semicolon),
-            seq(
-                $.method_signature,
-                $.function_body
-            ),
+            $.method_declaration,
+        ),
+
+        method_declaration: $ => seq(
+            field('signature', $.method_signature),
+            field('body', $.function_body)
         ),
 
         getter_signature: $ => seq(
