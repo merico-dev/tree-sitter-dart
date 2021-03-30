@@ -1,6 +1,6 @@
-===============
+================================================================================
 integral types
-===============
+================================================================================
 
 class Beyonce {
   int formation() {
@@ -12,60 +12,44 @@ class Beyonce {
   }
 }
 
----
+--------------------------------------------------------------------------------
 
 (program
   (class_definition
     (identifier)
     (class_body
-      (method_signature
-        (function_signature
-        (type_identifier)
-        (identifier)
-
-                (formal_parameter_list)
-        )
-        )
-          (function_body
-            (block
-              (local_variable_declaration
+      (method_declaration
+        (method_signature
+          (function_signature
+            (type_identifier)
+            (identifier)
+            (formal_parameter_list)))
+        (function_body
+          (block
+            (local_variable_declaration
               (initialized_variable_definition
-              (type_identifier)
-                  (identifier)))
-              (local_variable_declaration
-              (initialized_variable_definition
-
                 (type_identifier)
-                  (identifier)
-                  ))
-              (local_variable_declaration
+                (identifier)))
+            (local_variable_declaration
               (initialized_variable_definition
-
                 (type_identifier)
-                  (identifier)
-                  ))
-              (local_variable_declaration
+                (identifier)))
+            (local_variable_declaration
               (initialized_variable_definition
-
                 (type_identifier)
-                  (identifier)
-                  ))
-              (local_variable_declaration
+                (identifier)))
+            (local_variable_declaration
               (initialized_variable_definition
-
                 (type_identifier)
-                  (identifier)
-                  ))
-              )
-           )
+                (identifier)))
+            (local_variable_declaration
+              (initialized_variable_definition
+                (type_identifier)
+                (identifier)))))))))
 
-      )
-    )
-  )
-
-=====================
+================================================================================
 floating point types
-=====================
+================================================================================
 
 class Beyonce {
   int formation() {
@@ -74,31 +58,25 @@ class Beyonce {
   }
 }
 
----
+--------------------------------------------------------------------------------
 
 (program
   (class_definition
     (identifier)
     (class_body
-      (method_signature
-        (function_signature
-        (type_identifier)
-        (identifier)
-                        (formal_parameter_list)
-        )
-        )
+      (method_declaration
+        (method_signature
+          (function_signature
+            (type_identifier)
+            (identifier)
+            (formal_parameter_list)))
         (function_body
-        (block
-          (local_variable_declaration
-          (initialized_variable_definition
-
-            (type_identifier)
-            (identifier)
-          ))
-          (local_variable_declaration
-          (initialized_variable_definition
-
-            (type_identifier)
-            (identifier)
-          ))))
-            )))
+          (block
+            (local_variable_declaration
+              (initialized_variable_definition
+                (type_identifier)
+                (identifier)))
+            (local_variable_declaration
+              (initialized_variable_definition
+                (type_identifier)
+                (identifier)))))))))

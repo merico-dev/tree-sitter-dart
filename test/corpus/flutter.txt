@@ -1,6 +1,6 @@
-========================================
+================================================================================
 simple flutter example
-========================================
+================================================================================
 
 import 'package:flutter/material.dart';
 
@@ -18,29 +18,78 @@ class MyApp extends StatelessWidget {
 }
 
 
----
+--------------------------------------------------------------------------------
 
-(program 
-(import_or_export 
-  (library_import (import_specification (configurable_uri (uri (string_literal)))))) 
-(function_signature (void_type) (identifier) (formal_parameter_list)) 
-  (function_body (block (expression_statement (identifier) (selector (argument_part 
-  (arguments (identifier) (selector (argument_part (arguments))))))))) 
-(class_definition (identifier) (superclass (type_identifier)) 
-  (class_body 
-    (declaration (constant_constructor_signature (const_builtin) (qualified (identifier)) 
-      (formal_parameter_list (optional_formal_parameters (formal_parameter (type_identifier) (identifier))))) 
-        (initializers (initializer_list_entry (arguments (named_argument (label (identifier)) (identifier)))))) 
-    (marker_annotation (identifier)) 
-    (method_signature (function_signature (type_identifier) (identifier) 
-      (formal_parameter_list (formal_parameter (type_identifier) (identifier))))) 
-      (function_body (block (return_statement (identifier) (selector (argument_part (arguments)))))))))
+(program
+  (import_or_export
+    (library_import
+      (import_specification
+        (configurable_uri
+          (uri
+            (string_literal))))))
+  (function_declaration
+    (function_signature
+      (void_type)
+      (identifier)
+      (formal_parameter_list))
+    (function_body
+      (block
+        (expression_statement
+          (selector_expression
+            (identifier)
+            (selector
+              (argument_part
+                (arguments
+                  (selector_expression
+                    (identifier)
+                    (selector
+                      (argument_part
+                        (arguments))))))))))))
+  (class_definition
+    (identifier)
+    (superclass
+      (type_identifier))
+    (class_body
+      (declaration
+        (constant_constructor_signature
+          (const_builtin)
+          (qualified
+            (identifier))
+          (formal_parameter_list
+            (optional_formal_parameters
+              (formal_parameter
+                (type_identifier)
+                (identifier)))))
+        (initializers
+          (initializer_list_entry
+            (arguments
+              (named_argument
+                (label
+                  (identifier))
+                (identifier))))))
+      (marker_annotation
+        (identifier))
+      (method_declaration
+        (method_signature
+          (function_signature
+            (type_identifier)
+            (identifier)
+            (formal_parameter_list
+              (formal_parameter
+                (type_identifier)
+                (identifier)))))
+        (function_body
+          (block
+            (return_statement
+              (selector_expression
+                (identifier)
+                (selector
+                  (argument_part
+                    (arguments)))))))))))
 
-
-
-===============================================
+================================================================================
 ben's flutter error testing
-===============================================
+================================================================================
 
 
 class CatalogThumbnailUI extends StatelessWidget {
@@ -74,122 +123,242 @@ class CatalogThumbnailUI extends StatelessWidget {
   }
 }
 
-------------------------------
+--------------------------------------------------------------------------------
 
 (program
-    (class_definition (identifier) (superclass (type_identifier))
-        (class_body
-            (declaration (const_builtin) (static_final_declaration_list (static_final_declaration (identifier) (string_literal))))
-            (declaration (constructor_signature (identifier)
-                (formal_parameter_list (formal_parameter (constructor_param (this) (identifier))))))
-            (declaration (final_builtin) (type_identifier) (initialized_identifier_list (initialized_identifier (identifier))))
-            (marker_annotation (identifier))
-            (method_signature
-                (function_signature (type_identifier) (identifier)
-                    (formal_parameter_list (formal_parameter (type_identifier) (identifier)))))
-            (function_body
-                (block (comment)
-                    (local_variable_declaration
-                        (initialized_variable_definition (inferred_type) (identifier) (identifier)
-                            (selector (assignable_selector (unconditional_assignable_selector (identifier))))
-                            (selector (assignable_selector (unconditional_assignable_selector (identifier))))))
-                    (local_variable_declaration
-                        (initialized_variable_definition (inferred_type) (identifier) (identifier)
-                            (selector (assignable_selector (unconditional_assignable_selector (identifier))))
-                            (selector (assignable_selector (unconditional_assignable_selector (identifier))))
-                            (selector (argument_part (arguments (decimal_integer_literal) (identifier)
-                                (selector (assignable_selector (unconditional_assignable_selector (identifier))))
-                                (selector (assignable_selector (unconditional_assignable_selector (identifier)))))))))
-                    (local_variable_declaration
-                        (initialized_variable_definition (inferred_type) (identifier) (identifier)
-                            (selector (assignable_selector (unconditional_assignable_selector (identifier))))
+  (class_definition
+    (identifier)
+    (superclass
+      (type_identifier))
+    (class_body
+      (declaration
+        (const_builtin)
+        (static_final_declaration_list
+          (static_final_declaration
+            (identifier)
+            (string_literal))))
+      (declaration
+        (constructor_signature
+          (identifier)
+          (formal_parameter_list
+            (formal_parameter
+              (constructor_param
+                (this)
+                (identifier))))))
+      (declaration
+        (final_builtin)
+        (type_identifier)
+        (initialized_identifier_list
+          (initialized_identifier
+            (identifier))))
+      (marker_annotation
+        (identifier))
+      (method_declaration
+        (method_signature
+          (function_signature
+            (type_identifier)
+            (identifier)
+            (formal_parameter_list
+              (formal_parameter
+                (type_identifier)
+                (identifier)))))
+        (function_body
+          (block
+            (comment)
+            (local_variable_declaration
+              (initialized_variable_definition
+                (inferred_type)
+                (identifier)
+                (selector_expression
+                  (selector_expression
+                    (identifier)
+                    (selector
+                      (assignable_selector
+                        (unconditional_assignable_selector
+                          (identifier)))))
+                  (selector
+                    (assignable_selector
+                      (unconditional_assignable_selector
+                        (identifier)))))))
+            (local_variable_declaration
+              (initialized_variable_definition
+                (inferred_type)
+                (identifier)
+                (selector_expression
+                  (selector_expression
+                    (selector_expression
+                      (identifier)
+                      (selector
+                        (assignable_selector
+                          (unconditional_assignable_selector
+                            (identifier)))))
+                    (selector
+                      (assignable_selector
+                        (unconditional_assignable_selector
+                          (identifier)))))
+                  (selector
+                    (argument_part
+                      (arguments
+                        (decimal_integer_literal)
+                        (selector_expression
+                          (selector_expression
+                            (identifier)
                             (selector
-                                (argument_part
-                                    (arguments
-                                        (function_expression
-                                            (formal_parameter_list (formal_parameter (identifier)))
-                                            (function_expression_body (identifier)
-                                                (selector
-                                                    (argument_part
-                                                        (arguments
-                                                            (named_argument (label (identifier))
-                                                                (list_literal
-                                                                    (type_arguments (type_identifier)) (identifier)
-                                                                    (selector (argument_part (arguments))) (identifier)
-                                                                    (selector
-                                                                        (argument_part
-                                                                            (arguments
-                                                                                (named_argument (label (identifier))
-                                                                                    (list_literal
-                                                                                        (type_arguments (type_identifier))
-                                                                                        (identifier)
-                                                                                        (selector
-                                                                                            (argument_part
-                                                                                                (arguments (identifier)
-                                                                                                    (selector
-                                                                                                        (assignable_selector
-                                                                                                            (unconditional_assignable_selector
-                                                                                                            (identifier))))
-                                                                                                    (selector
-                                                                                                        (assignable_selector
-                                                                                                            (unconditional_assignable_selector
-                                                                                                            (identifier))))
-                                                                                                    (selector
-                                                                                                        (argument_part
-                                                                                                            (arguments (identifier)
-                                                                                                                (selector
-                                                                                                                    (assignable_selector
-                                                                                                                        (unconditional_assignable_selector (identifier))))
-                                                                                                                (selector (argument_part (arguments))))))
-                                                                                                    (selector
-                                                                                                        (assignable_selector
-                                                                                                            (unconditional_assignable_selector (identifier))))
-                                                                                                    (selector
-                                                                                                        (assignable_selector
-                                                                                                            (unconditional_assignable_selector (identifier))))
-                                                                                                    (selector (argument_part (arguments))))))
-                                                                                        (identifier)
-                                                                                        (selector
-                                                                                            (argument_part
-                                                                                                (arguments (identifier)
-                                                                                                    (selector
-                                                                                                        (assignable_selector
-                                                                                                            (unconditional_assignable_selector (identifier)))))))
-                                                                                        (identifier)
-                                                                                        (selector
-                                                                                            (argument_part
-                                                                                                (arguments
-                                                                                                    (string_literal))))
-                                                                                    )))))))))))))))))
-                    (return_statement
-                        (identifier)
-                        (selector
+                              (assignable_selector
+                                (unconditional_assignable_selector
+                                  (identifier)))))
+                          (selector
+                            (assignable_selector
+                              (unconditional_assignable_selector
+                                (identifier)))))))))))
+            (local_variable_declaration
+              (initialized_variable_definition
+                (inferred_type)
+                (identifier)
+                (selector_expression
+                  (selector_expression
+                    (identifier)
+                    (selector
+                      (assignable_selector
+                        (unconditional_assignable_selector
+                          (identifier)))))
+                  (selector
+                    (argument_part
+                      (arguments
+                        (selector_expression
+                          (function_expression
+                            (formal_parameter_list
+                              (formal_parameter
+                                (identifier)))
+                            (function_expression_body
+                              (identifier)))
+                          (selector
                             (argument_part
-                                (arguments
-                                    (named_argument
-                                        (label (identifier))
-                                        (identifier)
-                                        (selector
-                                            (argument_part
-                                                (arguments
-                                                    (named_argument (label (identifier))
-                                                    (list_literal
-                                                        (type_arguments (type_identifier))
-                                                        (identifier)
-                                                        (selector
-                                                            (argument_part
-                                                                (arguments
-                                                                    (named_argument (label (identifier))
+                              (arguments
+                                (named_argument
+                                  (label
+                                    (identifier))
+                                  (list_literal
+                                    (type_arguments
+                                      (type_identifier))
+                                    (selector_expression
+                                      (identifier)
+                                      (selector
+                                        (argument_part
+                                          (arguments))))
+                                    (selector_expression
+                                      (identifier)
+                                      (selector
+                                        (argument_part
+                                          (arguments
+                                            (named_argument
+                                              (label
+                                                (identifier))
+                                              (list_literal
+                                                (type_arguments
+                                                  (type_identifier))
+                                                (selector_expression
+                                                  (identifier)
+                                                  (selector
+                                                    (argument_part
+                                                      (arguments
+                                                        (selector_expression
+                                                          (selector_expression
+                                                            (selector_expression
+                                                              (selector_expression
+                                                                (selector_expression
+                                                                  (selector_expression
                                                                     (identifier)
                                                                     (selector
-                                                                        (argument_part (arguments (identifier) (true))))))))
-                                                        (spread_element (identifier))))))))))))
-                    )))))
+                                                                      (assignable_selector
+                                                                        (unconditional_assignable_selector
+                                                                          (identifier)))))
+                                                                  (selector
+                                                                    (assignable_selector
+                                                                      (unconditional_assignable_selector
+                                                                        (identifier)))))
+                                                                (selector
+                                                                  (argument_part
+                                                                    (arguments
+                                                                      (selector_expression
+                                                                        (selector_expression
+                                                                          (identifier)
+                                                                          (selector
+                                                                            (assignable_selector
+                                                                              (unconditional_assignable_selector
+                                                                                (identifier)))))
+                                                                        (selector
+                                                                          (argument_part
+                                                                            (arguments))))))))
+                                                              (selector
+                                                                (assignable_selector
+                                                                  (unconditional_assignable_selector
+                                                                    (identifier)))))
+                                                            (selector
+                                                              (assignable_selector
+                                                                (unconditional_assignable_selector
+                                                                  (identifier)))))
+                                                          (selector
+                                                            (argument_part
+                                                              (arguments))))))))
+                                                (selector_expression
+                                                  (identifier)
+                                                  (selector
+                                                    (argument_part
+                                                      (arguments
+                                                        (selector_expression
+                                                          (identifier)
+                                                          (selector
+                                                            (assignable_selector
+                                                              (unconditional_assignable_selector
+                                                                (identifier)))))))))
+                                                (selector_expression
+                                                  (identifier)
+                                                  (selector
+                                                    (argument_part
+                                                      (arguments
+                                                        (string_literal)))))))))))))))))))))))
+            (return_statement
+              (selector_expression
+                (identifier)
+                (selector
+                  (argument_part
+                    (arguments
+                      (named_argument
+                        (label
+                          (identifier))
+                        (selector_expression
+                          (identifier)
+                          (selector
+                            (argument_part
+                              (arguments
+                                (named_argument
+                                  (label
+                                    (identifier))
+                                  (list_literal
+                                    (type_arguments
+                                      (type_identifier))
+                                    (selector_expression
+                                      (identifier)
+                                      (selector
+                                        (argument_part
+                                          (arguments
+                                            (named_argument
+                                              (label
+                                                (identifier))
+                                              (selector_expression
+                                                (identifier)
+                                                (selector
+                                                  (argument_part
+                                                    (arguments
+                                                      (identifier)
+                                                      (true))))))))))
+                                    (spread_element
+                                      (identifier))))))))))))))))))))
 
-
-======================
+================================================================================
 Const list constructors
-======================
+================================================================================
 
 import 'package:flutter/material.dart';
 
@@ -205,21 +374,85 @@ class AWidget extends StatelessWidget {
   }
 }
 
----
+--------------------------------------------------------------------------------
 
-(program 
-  (import_or_export (library_import (import_specification (configurable_uri (uri (string_literal)))))) 
-  (class_definition (identifier) (superclass (type_identifier)) 
-    (class_body (marker_annotation (identifier)) 
-      (method_signature (function_signature (type_identifier) (identifier) (formal_parameter_list (formal_parameter (type_identifier) (identifier))))) 
-        (function_body (block 
-          (return_statement (identifier) 
-            (selector (argument_part (arguments (named_argument (label (identifier)) 
-              (list_literal (const_builtin) (identifier) 
-                (selector (argument_part (arguments (named_argument (label (identifier)) (identifier) 
-                  (selector (argument_part (arguments (named_argument (label (identifier)) (identifier) 
-                  (selector (assignable_selector (unconditional_assignable_selector (identifier)))))))))))) (identifier) 
-                (selector (argument_part (arguments (named_argument (label (identifier)) (identifier) 
-                  (selector (argument_part (arguments (named_argument (label (identifier)) (identifier) 
-                  (selector (assignable_selector (unconditional_assignable_selector (identifier)))))))))))))))))))))))
-
+(program
+  (import_or_export
+    (library_import
+      (import_specification
+        (configurable_uri
+          (uri
+            (string_literal))))))
+  (class_definition
+    (identifier)
+    (superclass
+      (type_identifier))
+    (class_body
+      (marker_annotation
+        (identifier))
+      (method_declaration
+        (method_signature
+          (function_signature
+            (type_identifier)
+            (identifier)
+            (formal_parameter_list
+              (formal_parameter
+                (type_identifier)
+                (identifier)))))
+        (function_body
+          (block
+            (return_statement
+              (selector_expression
+                (identifier)
+                (selector
+                  (argument_part
+                    (arguments
+                      (named_argument
+                        (label
+                          (identifier))
+                        (list_literal
+                          (const_builtin)
+                          (selector_expression
+                            (identifier)
+                            (selector
+                              (argument_part
+                                (arguments
+                                  (named_argument
+                                    (label
+                                      (identifier))
+                                    (selector_expression
+                                      (identifier)
+                                      (selector
+                                        (argument_part
+                                          (arguments
+                                            (named_argument
+                                              (label
+                                                (identifier))
+                                              (selector_expression
+                                                (identifier)
+                                                (selector
+                                                  (assignable_selector
+                                                    (unconditional_assignable_selector
+                                                      (identifier)))))))))))))))
+                          (selector_expression
+                            (identifier)
+                            (selector
+                              (argument_part
+                                (arguments
+                                  (named_argument
+                                    (label
+                                      (identifier))
+                                    (selector_expression
+                                      (identifier)
+                                      (selector
+                                        (argument_part
+                                          (arguments
+                                            (named_argument
+                                              (label
+                                                (identifier))
+                                              (selector_expression
+                                                (identifier)
+                                                (selector
+                                                  (assignable_selector
+                                                    (unconditional_assignable_selector
+                                                      (identifier))))))))))))))))))))))))))))
