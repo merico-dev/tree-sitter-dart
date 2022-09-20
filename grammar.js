@@ -58,18 +58,18 @@ module.exports = grammar({
     name: 'dart',
 
     externals: $ => [
-        $._automatic_semicolon,
         $._template_chars_double,
         $._template_chars_single,
         $._template_chars_double_single,
         $._template_chars_single_single,
-        $._template_chars_raw_slash
+        $._template_chars_raw_slash,
+        $._block_comment,
+        $._documentation_block_comment,
     ],
 
     extras: $ => [
         $.comment,
         $.documentation_comment,
-        // $.multiline_comment,
         /\s/
     ],
 
@@ -87,6 +87,7 @@ module.exports = grammar({
     inline: $ => [
         $._ambiguous_name,
         $._class_member_definition,
+        $._if_null_expression,
     ],
 
     conflicts: $ => [
@@ -117,6 +118,11 @@ module.exports = grammar({
         // [$._real_expression, $._below_relational_expression],
         [$._postfix_expression],
         [$._top_level_definition, $.lambda_expression],
+        [$._top_level_definition, $._var_or_type, $.function_signature],
+        [$._var_or_type, $.function_signature],
+        [$._var_or_type, $._function_formal_parameter],
+        [$._var_or_type],
+        [$._top_level_definition, $._var_or_type],
         [$._top_level_definition, $._final_const_var_or_type],
         [$._top_level_definition, $.const_object_expression, $._final_const_var_or_type],
         [$._final_const_var_or_type, $.const_object_expression],
@@ -127,9 +133,9 @@ module.exports = grammar({
         [$.library_name, $.dotted_identifier_list],
         [$._top_level_definition, $.inferred_type],
         [$._final_const_var_or_type, $._top_level_definition, $.function_signature],
-        [$.assignable_selector_part, $.selector],
-        [$.assignable_selector_part, $._postfix_expression],
-        [$.assignable_selector_part, $.postfix_expression],
+        [$._assignable_selector_part, $.selector],
+        [$._assignable_selector_part, $._postfix_expression],
+        [$._assignable_selector_part, $.postfix_expression],
         [$._primary, $.assignable_expression],
         [$._simple_formal_parameter, $.assignable_expression],
         // [$._type_name, $._primary, $.assignable_expression],
@@ -159,14 +165,15 @@ module.exports = grammar({
         [$.function_declaration, $.lambda_expression],
         [$._postfix_expression, $._primary],
         [$.assignable_expression, $._postfix_expression, $.selector_expression],
-        [$.assignable_selector_part, $.selector_expression]
+        [$._assignable_selector_part, $.selector_expression],
+        [$.super_formal_parameter, $.unconditional_assignable_selector],
     ],
 
     word: $ => $.identifier,
 
     rules: {
 
-        // Page 188 libraryDeclaration 
+        // Page 188 libraryDeclaration
         program: $ => seq(
             optional($.script_tag),
             optional($.library_name),
@@ -176,7 +183,8 @@ module.exports = grammar({
             // The precedence here is to make sure that this rule is matched before any of the _statement rules are matched for testing.
             repeat(prec.dynamic(22, seq(optional($._metadata), $._top_level_definition))),
             //for testing:
-            repeat($._statement)
+            repeat($._statement),
+            optional($._expression),
         ),
 
         // Page 187 topLevelDefinition
@@ -205,7 +213,7 @@ module.exports = grammar({
             $.getter_declaration,
             $.setter_declaration,
 
-            //    final or const static final declaration list            
+            //    final or const static final declaration list
             seq(
                 choice(
                     $.final_builtin,
@@ -224,12 +232,12 @@ module.exports = grammar({
             ),
             seq(
                 optional($._late_builtin),
-                choice($._type, $.inferred_type),
+                choice($._type, seq($.inferred_type, optional($._type))),
                 $.initialized_identifier_list,
                 $._semicolon
             )
         ),
-        
+
 /**************************************************************************************************
 *********************************Literals**********************************************************
 ***************************************************************************************************
@@ -253,7 +261,7 @@ module.exports = grammar({
 /****This is the symbol literals from section 16.8 (Page 99) of the dart specification****************/
         symbol_literal: $ => seq('#', $.identifier),
         //symbol literal can also be an operator?
-        
+
 /**************************************************************************************************
 *********************************Numeric Literals**************************************************
 ***************************************************************************************************
@@ -267,7 +275,7 @@ module.exports = grammar({
             choice('0x', '0X'),
             HEX_DIGITS
         )),
-        
+
         decimal_floating_point_literal: $ => token(choice(
             seq(DIGITS, '.', DIGITS, optional(seq((/[eE]/), optional(choice('-', '+')), DIGITS))),
             seq('.', DIGITS, optional(seq((/[eE]/), optional(choice('-', '+')), DIGITS))),
@@ -450,8 +458,8 @@ module.exports = grammar({
             )
         )),
         escape_sequence: $ => $._unused_escape_sequence,
-       
-        
+
+
 /**************************************************************************************************
 *********************************Collection Literals***********************************************
 ***************************************************************************************************
@@ -470,7 +478,7 @@ module.exports = grammar({
             ),
             '}'
         ),
-    
+
         pair: $ => seq(
             field('key', $._expression),
             ':',
@@ -616,29 +624,35 @@ module.exports = grammar({
         )),
 
         assignable_expression: $ => choice(
-            seq($._primary, $.assignable_selector_part), // dart issue?
+            seq($._primary, $._assignable_selector_part), // dart issue?
             seq($.super, $.unconditional_assignable_selector),
-            seq($.constructor_invocation, $.assignable_selector_part),
+            seq($.constructor_invocation, $._assignable_selector_part),
             $.identifier
         ),
-        assignable_selector_part: $ => seq(
+        _assignable_selector_part: $ => seq(
             repeat($.selector),
-            $.assignable_selector
+            $._assignable_selector
         ),
         //'+=', '-=', '*=', '/=', '&=', '|=', '^=', '%=', '<<=', '>>=', '>>>=', '??='
         //todo: use the op names in place of these.
         _assignment_operator: $ => choice(
                     '=',
-                    seq(
-                        choice(
-                            $._multiplicative_operator,
-                            $._shift_operator,
-                            $._bitwise_operator,
-                            $._additive_operator,
-                            '??'
-                        ),
-                        '='
-                    )
+                    // additive operator
+                    '+=',
+                    '-=',
+                    // multiplicative operator
+                    '*=',
+                    '/=',
+                    '%=',
+                    '~/=',
+                    // shift operator
+                    '<<=',
+                    '>>=',
+                    '>>>=',
+                    '&=',
+                    '^=',
+                    '|=',
+                    '??=',
                 ),
 
         // binary_expression: $ => choice(
@@ -950,7 +964,7 @@ module.exports = grammar({
         selector: $ => choice(
             // '!',
             $._exclamation_operator,
-            $.assignable_selector,
+            $._assignable_selector,
             $.argument_part
         ),
 
@@ -1014,7 +1028,7 @@ module.exports = grammar({
             ),
             $.arguments
         ),
-       
+
 
         _primary: $ => choice(
             $.selector_expression,
@@ -1023,14 +1037,13 @@ module.exports = grammar({
             $.identifier,
             $.new_expression,
             $.const_object_expression,
-            seq('(', $._expression, ')'),
+            $.parenthesized_expression,
             // $.class_literal,
             $.this,
             seq(
                 $.super,
                 $.unconditional_assignable_selector
             )
-            // $.parenthesized_expression,
             // $.object_creation_expression,
             // $.field_access,
             // $.array_access,
@@ -1062,7 +1075,7 @@ module.exports = grammar({
 
         _argument_list: $ => choice(
             commaSep1($.named_argument),
-            seq(commaSep1($._expression),
+            seq(commaSep1($.argument),
                 repeat(
                     seq(
                         ',',
@@ -1072,12 +1085,14 @@ module.exports = grammar({
             )
         ),
 
+        argument: $ => $._expression,
+
         named_argument: $ => seq($.label, $._expression),
 
         cascade_section: $ => prec.left(
             DART_PREC.Cascade,
             seq(
-                '..',
+                choice('..', '?..'),
                 $.cascade_selector,
                 repeat($.argument_part),
                 repeat(
@@ -1093,15 +1108,19 @@ module.exports = grammar({
         // DART_PREC.Cascade,
         // ),
         _cascade_subsection: $ => seq(
-            $.assignable_selector,
+            $._assignable_selector,
             repeat($.argument_part)
         ),
         _cascade_assignment_section: $ => seq(
             $._assignment_operator,
             $._expression_without_cascade
         ),
+        index_selector: $ => seq('[', $._expression, ']'),
         cascade_selector: $ => choice(
-            seq(optional($._nullable_type), '[', $._expression, ']'),
+            seq(
+                optional($._nullable_type),
+                $.index_selector,
+            ),
             $.identifier
         ),
         argument_part: $ => seq(
@@ -1116,13 +1135,18 @@ module.exports = grammar({
         ),
 
         unconditional_assignable_selector: $ => choice(
-            seq(optional($._nullable_type), '[', $._expression, ']'),
+            seq(
+                optional($._nullable_type),
+                $.index_selector,
+            ),
             seq('.', $.identifier)
         ),
 
-        assignable_selector: $ => choice(
+        conditional_assignable_selector: $ => seq('?.', $.identifier),
+
+        _assignable_selector: $ => choice(
             $.unconditional_assignable_selector,
-            seq('?.', $.identifier)
+            $.conditional_assignable_selector
         ),
 
         type_arguments: $ => choice( // was prec.right
@@ -1157,7 +1181,8 @@ module.exports = grammar({
         // Statements
         _statement: $ => choice(
             $.block,
-            $.local_variable_declaration,
+            prec.dynamic(1, $.local_function_declaration),
+            prec.dynamic(2, $.local_variable_declaration),
             $.for_statement,
             $.while_statement,
             $.do_statement,
@@ -1174,7 +1199,11 @@ module.exports = grammar({
             $.yield_each_statement,
             $.expression_statement,
             $.assert_statement,
-            $.labeled_statement,
+            // $.labeled_statement,
+        ),
+
+        local_function_declaration: $ => seq(
+            optional($._metadata),
             $.lambda_expression
         ),
 
@@ -1193,11 +1222,23 @@ module.exports = grammar({
 
         assert_statement: $ => seq($.assertion, ';'),
 
-        assertion: $ => seq($._assert_builtin, '(', $._expression, optional(seq(
-            ',',
+        assertion: $ => seq(
+            $._assert_builtin,
+            $.assertion_arguments,
+        ),
+
+        assertion_arguments: $ => seq(
+            '(',
             $._expression,
-            optional(',')
-        )), ')'),
+            optional(
+                seq(
+                    ',',
+                    $._expression
+                ),
+            ),
+            optional(','),
+            ')',
+        ),
 
         switch_statement: $ => seq(
             'switch',
@@ -1317,11 +1358,11 @@ module.exports = grammar({
         for_statement: $ => seq(
             optional('await'),
             'for',
-            '(',
-            $._for_loop_parts,
-            ')',
+            $.for_loop_parts,
             field('body', $._statement)
         ),
+
+        for_loop_parts: $ => seq('(', $._for_loop_parts, ')'),
 
         _for_loop_parts: $ => choice(
             seq(
@@ -1349,9 +1390,7 @@ module.exports = grammar({
         for_element: $ => seq(
             optional('await'),
             'for',
-            '(',
-            $._for_loop_parts,
-            ')',
+            $.for_loop_parts,
             field('body', $._element)
         ),
 
@@ -1502,11 +1541,11 @@ module.exports = grammar({
 
         configuration_uri: $ => seq(
             'if',
-            '(',
-            $.uri_test,
-            ')',
+            $.configuration_uri_condition,
             $.uri
         ),
+
+        configuration_uri_condition: $ => seq('(', $.uri_test, ')'),
 
         uri_test: $ => seq(
             $.dotted_identifier_list,
@@ -1545,14 +1584,14 @@ module.exports = grammar({
         )),
 
         type_alias: $ => choice(
-            seq($._typedef, 
-                $._type_name, 
-                optional($.type_parameters), 
+            seq($._typedef,
+                $._type_name,
+                optional($.type_parameters),
                 '=', $.function_type, ';'),
 
-            seq($._typedef, 
-                optional($._type), 
-                $._type_name, 
+            seq($._typedef,
+                optional($._type),
+                $._type_name,
                 $._formal_parameter_part, ';'),
         ),
 
@@ -1597,6 +1636,12 @@ module.exports = grammar({
             alias(
                 $.identifier,
                 $.type_identifier),
+                // This is a comment
+                // comment with a link made in https://github.com/flutter/flutter/pull/48547
+                // Changes made in https://github.com/flutter/flutter/pull/48547
+                /* This is also a comment */
+                /* this comment /* // /** ends here: */
+
             optional($._nullable_type),
             optional($.type_bound)
         ),
@@ -1701,7 +1746,7 @@ module.exports = grammar({
         method_signature: $ => choice(
             seq($.constructor_signature, optional($.initializers)),
             $.factory_constructor_signature,
-           
+
             seq(
                 optional($._static),
                 choice(
@@ -1740,7 +1785,7 @@ module.exports = grammar({
                 optional($._external_and_static),
                 $.setter_signature,
             ),
-            
+
             seq(
                 optional($._external),
                 $.operator_signature
@@ -1754,11 +1799,74 @@ module.exports = grammar({
                 $._static,
                 $.function_signature,
             ),
+            // | static const 〈type〉? 〈staticFinalDeclarationList〉
+            // | static final 〈type〉? 〈staticFinalDeclarationList〉
+            // | static late final 〈type〉? 〈initializedIdentifierList〉
+            // | static late? 〈varOrType〉 〈initializedIdentifierList
             seq(
                 $._static,
-                $._final_or_const,
-                optional($._type),
-                $.static_final_declaration_list
+                choice(
+                    seq(
+                        $._final_or_const,
+                        optional($._type),
+                        $.static_final_declaration_list
+                    ),
+                    seq(
+                        $._late_builtin,
+                        choice(
+                            seq(
+                                $.final_builtin,
+                                optional($._type),
+                                $.initialized_identifier_list
+                            ),
+                            seq(
+                                choice(
+                                    $._type,
+                                    $.inferred_type,
+                                ),
+                                $.initialized_identifier_list
+                            )
+                        )
+                    ),
+                    seq(
+                        choice(
+                            $._type,
+                            $.inferred_type,
+                        ),
+                        $.initialized_identifier_list
+                    )
+                )
+            ),
+            // | covariant late final 〈type〉? 〈identifierList〉
+            // | covariant late? 〈varOrType〉 〈initializedIdentifierList〉
+            seq(
+                $._covariant,
+                choice(
+                    seq(
+                        $._late_builtin,
+                        choice(
+                            seq(
+                                $.final_builtin,
+                                optional($._type),
+                                $.identifier_list
+                            ),
+                            seq(
+                                choice(
+                                    $._type,
+                                    $.inferred_type,
+                                ),
+                                $.initialized_identifier_list
+                            )
+                        )
+                    ),
+                    seq(
+                        choice(
+                            $._type,
+                            $.inferred_type,
+                        ),
+                        $.initialized_identifier_list
+                    )
+                )
             ),
             seq(
                 optional($._late_builtin), $.final_builtin,
@@ -1766,12 +1874,8 @@ module.exports = grammar({
                 $.initialized_identifier_list
             ),
             seq(
-                optional($._static_or_covariant),
                 optional($._late_builtin),
-                choice(
-                    $._type,
-                    $.inferred_type
-                ),
+                $._var_or_type,
                 $.initialized_identifier_list
             )
         //    TODO: add in the 'late' keyword from the informal draft spec:
@@ -1780,6 +1884,10 @@ module.exports = grammar({
         //    |covariant late?〈varOrType〉 〈initializedIdentifierList〉
         //    |late?final〈type〉?〈initializedIdentifierList〉
         //    |late?〈varOrType〉 〈initializedIdentifierList〉
+        ),
+
+        identifier_list: $ => commaSep1(
+            $.identifier
         ),
         initialized_identifier_list: $ => commaSep1(
             $.initialized_identifier
@@ -1844,10 +1952,6 @@ module.exports = grammar({
         initializer_list_entry: $ => choice(
             seq('super',
                 optional(seq('.', $.qualified)),
-                //$.arguements
-                $.arguments
-            ),
-            seq('super',
                 //$.arguements
                 $.arguments
             ),
@@ -1987,10 +2091,7 @@ module.exports = grammar({
                 $._type
             )),
             seq(optional($._late_builtin),
-                choice(
-                    $.inferred_type,
-                    $._type
-                ))
+                $._var_or_type)
         ),
 
         _type: $ => choice(
@@ -2056,9 +2157,12 @@ module.exports = grammar({
             ')'
         ),
 
-        normal_parameter_type: $ => choice(
-            $.typed_identifier,
-            $._type
+        normal_parameter_type: $ => seq(
+            optional($._metadata),
+            choice(
+                $.typed_identifier,
+                $._type
+            )
         ),
 
         optional_parameter_types: $ => choice(
@@ -2073,8 +2177,14 @@ module.exports = grammar({
         ),
         named_parameter_types: $ => seq(
             '{',
-            commaSep1TrailingComma($.typed_identifier),
+            commaSep1TrailingComma($._named_parameter_type),
             '}'
+        ),
+
+        _named_parameter_type: $ => seq(
+            optional($._metadata),
+            optional($._required),
+            $.typed_identifier
         ),
 
         _type_not_void: $ => choice(
@@ -2129,7 +2239,6 @@ module.exports = grammar({
         ),
 
         typed_identifier: $ => seq(
-            optional($._metadata),
             $._type,
             $.identifier
         ),
@@ -2146,6 +2255,14 @@ module.exports = grammar({
         ),
 
         void_type: $ => token('void'),
+
+        _var_or_type: $ => choice(
+            $._type,
+            seq(
+                $.inferred_type,
+                optional($._type)
+            )
+        ),
 
         inferred_type: $ => prec(
             DART_PREC.BUILTIN,
@@ -2229,9 +2346,9 @@ module.exports = grammar({
             $.formal_parameter_list
         ),
 
-        
+
         formal_parameter_list: $ => $._strict_formal_parameter_list,
-        
+
         _strict_formal_parameter_list: $ => choice(
             seq(
                 '(',
@@ -2265,7 +2382,7 @@ module.exports = grammar({
             $._named_formal_parameters
         ),
 
-       
+
 
         positional_parameters: $ => seq(
             '[',
@@ -2303,7 +2420,7 @@ module.exports = grammar({
         _default_named_parameter: $ => choice(
             seq(
                 optional(
-                    'required'
+                    $._required
                 ),
                 $.formal_parameter,
                 optional(
@@ -2315,7 +2432,7 @@ module.exports = grammar({
             ),
             seq(
                 optional(
-                    'required'
+                    $._required
                 ),
                 $.formal_parameter,
                 optional(
@@ -2334,8 +2451,8 @@ module.exports = grammar({
             choice(
                 $._function_formal_parameter,
                 $._simple_formal_parameter,
-                $.constructor_param
-                // $.field_formal_parameter
+                $.constructor_param,
+                $.super_formal_parameter
             )
         ),
 
@@ -2360,6 +2477,16 @@ module.exports = grammar({
                 $.identifier
             )
         ),
+
+        // see https://github.com/dart-lang/language/blob/31f3d2bd6fd83b2e5f5019adb276c23fd2900941/working/1855%20-%20super%20parameters/proposal.md
+        super_formal_parameter: $ => seq(
+            optional($._final_const_var_or_type),
+            $.super,
+            '.',
+            $.identifier,
+            optional($._formal_parameter_part)
+        ),
+
         //constructor param = field formal parameter
         constructor_param: $ => seq(
             optional($._final_const_var_or_type),
@@ -2504,6 +2631,10 @@ module.exports = grammar({
             DART_PREC.BUILTIN,
             'part',
         ),
+        _required: $ => prec(
+            DART_PREC.BUILTIN,
+            'required',
+        ),
         _set: $ => prec(
             DART_PREC.BUILTIN,
             'set',
@@ -2567,83 +2698,35 @@ module.exports = grammar({
 
         label: $ => seq($.identifier, ':'),
 
-        _semicolon: $ => seq(';', optional($._automatic_semicolon)),
+        _semicolon: $ => token(';'),
 
         identifier: $ => /[a-zA-Z_$][\w$]*/,
         identifier_dollar_escaped: $ => /([a-zA-Z_]|(\\\$))([\w]|(\\\$))*/,
         //TODO: add support for triple-slash comments as a special category.
         // Trying to add support for nested multiline comments.
         // http://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment/36328890#36328890
-        comment: $ => token(choice(
-            seq('//', /[^/].*/),
+
+        // _line_comment: $ => token(seq(
+        //     '//', /[^\/].*/
+        //   )),
+        // _documentation_line_comment: $ => token(seq('///', /.*/)),
+
+        comment: $ => choice(
+            $._block_comment,
+            seq('//', /([^/\n].*)?/),
             seq(
                 '/*',
                 /[^*]*\*+([^/*][^*]*\*+)*/,
                 '/'
             )
-        )),
-        //added nesting comments.
-        documentation_comment: $ => token(
-            choice(
-                seq('///', /.*/),
-                // seq(
-                //     '/**',
-                //     repeat(
-                //         choice(
-                //             /[^*]*\*+([^/*][^*]*\*+)*/,
-                //             // $.comment
-                //             // ,
-                //             /.*/,
-                //             $._multiline_comment,
-                //             $.documentation_comment
-                //         )
-                //     ),
-                //     '*/'
-                // )
-            )
         ),
-        // multiline_comment: $ => seq(
-        //     $._multiline_comment_begin,
-        //     $._multiline_comment_core,
-        //     // repeat(
-        //     //     choice(
-        //     //         $._multiline_comment_core,
-        //     //         $.multiline_comment
-        //     //     )
-        //     // ),
-        //     $._multiline_comment_end
-        // ),
-        // _multiline_comment_end: $ => token('*/'),
-        // _multiline_comment_begin: $ => token('/*'),
-        //
-        // _nested_multiline_comment: $ => seq(
-        //     $._multiline_comment_begin,
-        //     repeat(
-        //         choice(
-        //             /([^\/*]*|\/[^*]|\*[^\/])+/,
-        //             $._nested_multiline_comment
-        //             // seq(
-        //             //     $._multiline_comment_begin,
-        //             //     $._multiline_comment_core,
-        //             // )
-        //         )
-        //     ),
-        //     $._multiline_comment_end
-        // ),
-        //
-        // _multiline_comment_core: $ => seq(
-        //     repeat1(
-        //         choice(
-        //             /([^\/*]*|\/[^*]|\*[^\/])+/,
-        //             $._nested_multiline_comment
-        //             // seq(
-        //             //     $._multiline_comment_begin,
-        //             //     $._multiline_comment_core,
-        //             // )
-        //         )
-        //     ),
-        //     // $._multiline_comment_end
-        // ),
+        //added nesting comments.
+        documentation_comment: $ =>
+            choice(
+                $._documentation_block_comment,
+                seq('///', /.*/),
+            )
+        ,
     }
 });
 
