@@ -1075,7 +1075,7 @@ module.exports = grammar({
 
         _argument_list: $ => choice(
             commaSep1($.named_argument),
-            seq(commaSep1($.argument),
+            seq(commaSep1($._expression),
                 repeat(
                     seq(
                         ',',
@@ -1084,8 +1084,6 @@ module.exports = grammar({
                 )
             )
         ),
-
-        argument: $ => $._expression,
 
         named_argument: $ => seq($.label, $._expression),
 
@@ -1199,7 +1197,7 @@ module.exports = grammar({
             $.yield_each_statement,
             $.expression_statement,
             $.assert_statement,
-            // $.labeled_statement,
+            $.labeled_statement,
         ),
 
         local_function_declaration: $ => seq(
@@ -1358,13 +1356,13 @@ module.exports = grammar({
         for_statement: $ => seq(
             optional('await'),
             'for',
-            $.for_loop_parts,
+            $._for_loop_parts,
             field('body', $._statement)
         ),
 
-        for_loop_parts: $ => seq('(', $._for_loop_parts, ')'),
-
-        _for_loop_parts: $ => choice(
+        _for_loop_parts: $ => seq(
+          '(',
+          choice(
             seq(
                 choice(
                     $._declared_identifier,
@@ -1380,17 +1378,19 @@ module.exports = grammar({
                         commaSep(field('init', $._expression)),
                         $._semicolon
                     )
-                ),),
+                )),
                 field('condition', optional($._expression)), $._semicolon,
                 commaSep(field('update', $._expression)),
             )
+          ),
+          ')'
         ),
 
         // support map weirdness?
         for_element: $ => seq(
             optional('await'),
             'for',
-            $.for_loop_parts,
+            $._for_loop_parts,
             field('body', $._element)
         ),
 
